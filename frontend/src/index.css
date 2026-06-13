@@ -34,3 +34,44 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #52525b; /* zinc-600 */
 }
+
+/* Premium micro-interactions & glassmorphism utilities */
+.glass-panel {
+  background: rgba(9, 9, 11, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(63, 63, 70, 0.4);
+}
+
+.hover-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(161, 161, 170, 0.4); /* zinc-400 */
+  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.8);
+}
+
+.drawer-slide {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.terminal-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.7);
+  }
+}
+
+.active-pulse-glowing {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+

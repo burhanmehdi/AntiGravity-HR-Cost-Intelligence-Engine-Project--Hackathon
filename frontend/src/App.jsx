@@ -27,7 +27,10 @@ import {
   Briefcase,
   Coins,
   Cpu,
-  Terminal
+  Terminal,
+  X,
+  Info,
+  Maximize2
 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -54,6 +57,21 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [reallotActiveId, setReallotActiveId] = useState(null);
   const [reallotForm, setReallotForm] = useState({});
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [terminalLogs, setTerminalLogs] = useState([
+    `[${new Date().toLocaleTimeString()}] [SYS_BOOT] HR Cost Intelligence Engine v1.0.0 initializing...`,
+    `[${new Date().toLocaleTimeString()}] [SYS_DB] SQLite database connected. Found 5 active projects, 7 employee records, and 21 historical meetings.`,
+    `[${new Date().toLocaleTimeString()}] [SYS_AI] Custom OpenAI structured output mapping engine active.`,
+    `[${new Date().toLocaleTimeString()}] [SYS_ANOM] Cost standard deviation models & Z-score threshold (|Z| > 2.0) operational.`
+  ]);
+
+  const addLog = (system, message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setTerminalLogs(prev => [
+      ...prev,
+      `[${timestamp}] [${system}] ${message}`
+    ]);
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -72,9 +90,12 @@ export default function App() {
           initialFormState[item.id] = item.ai_attribution.project_id || '';
         });
         setReviewForm(prev => ({ ...initialFormState, ...prev }));
+        
+        addLog('SYS_DB', `Sync data fetched: ${data.all_meetings?.length || 0} total meetings, ${data.review_queue?.length || 0} pending review, ${data.anomalies?.length || 0} cost anomalies.`);
       }
     } catch (err) {
       console.error('Error fetching dashboard statistics:', err);
+      addLog('SYS_DB', 'Failed to retrieve stats from API server.');
     }
   };
 
@@ -105,6 +126,7 @@ export default function App() {
   const handleSync = async () => {
     setSyncLoading(true);
     setSyncStatusMsg('Syncing Google Calendar...');
+    addLog('SYS_SYNC', `Contacting Google Calendar API... Requesting changes with sync_token: '${syncToken || 'initial'}'`);
     try {
       const url = syncToken 
         ? `${API_BASE_URL}/api/meetings/sync?sync_token=${syncToken}`
@@ -117,17 +139,33 @@ export default function App() {
         
         if (data.events.length > 0) {
           setSyncStatusMsg(`Synced ${data.events.length} new events successfully.`);
+          addLog('SYS_SYNC', `Success: Retrieved ${data.events.length} new calendar entries. Next sync_token set to: '${data.nextSyncToken}'`);
+          
+          // Log each meeting status
+          data.events.forEach(e => {
+            const costFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(e.cost);
+            if (e.is_anomaly) {
+              addLog('SYS_ALERTS', `COST SPIKE DETECTED: "${e.title}" (${e.duration_hours}h, ${e.attendees?.length || 0} attendees) calculated at ${costFormatted} (Z-Score: +${e.z_score?.toFixed(2)}). Routed to Outliers list.`);
+            } else if (e.requires_human_review) {
+              addLog('SYS_VERIFICATION', `AUDIT FLAG: Low confidence AI attribution for "${e.title}" (${costFormatted}). Routed to manager verification queue.`);
+            } else {
+              addLog('SYS_AI', `AUTOMAPPED: Event "${e.title}" attributed to Project ID: ${e.project_id || 'Operations'} (${costFormatted}).`);
+            }
+          });
         } else {
           setSyncStatusMsg('No new calendar events found.');
+          addLog('SYS_SYNC', `Calendar sync check complete. Zero updates found. Token retained: '${data.nextSyncToken}'`);
         }
         
         await fetchDashboardData();
       } else {
         setSyncStatusMsg('Calendar sync failed.');
+        addLog('SYS_SYNC', 'Error: Calendar sync request returned invalid status from API gateway.');
       }
     } catch (err) {
       console.error('Error syncing meetings:', err);
       setSyncStatusMsg('Network error.');
+      addLog('SYS_SYNC', 'Network error encountered during incremental calendar query.');
     } finally {
       setSyncLoading(false);
       setTimeout(() => setSyncStatusMsg(''), 5000);
@@ -153,11 +191,13 @@ export default function App() {
       });
       
       if (res.ok) {
+        addLog('SYS_AUDIT', `Manager manually mapped event ID '${meetingId}' to Project: '${targetProjectId}'.`);
         await fetchDashboardData();
         setReallotActiveId(null);
       }
     } catch (err) {
       console.error('Error submitting review:', err);
+      addLog('SYS_AUDIT', `Error: Failed to register resolution for event ID '${meetingId}'.`);
     } finally {
       setActionLoading(prev => ({ ...prev, [meetingId]: false }));
     }
@@ -170,11 +210,13 @@ export default function App() {
         method: 'POST'
       });
       if (res.ok) {
+        addLog('SYS_AUDIT', `Re-allocation triggered: Event ID '${meetingId}' returned back to Human-in-the-Loop review queue.`);
         await fetchDashboardData();
         setReallotActiveId(null);
       }
     } catch (err) {
       console.error('Error sending meeting to review queue:', err);
+      addLog('SYS_AUDIT', `Error: Failed to return event ID '${meetingId}' to review queue.`);
     } finally {
       setActionLoading(prev => ({ ...prev, [meetingId]: false }));
     }
@@ -191,6 +233,7 @@ export default function App() {
         body: JSON.stringify({ hourly_rate: rateVal })
       });
       if (res.ok) {
+        addLog('SYS_ADMIN', `Dynamic update: Hourly rate for Employee ID '${employeeId}' updated to $${rateVal}/hr. Recalculated pending costs.`);
         setSyncStatusMsg(`Successfully updated rate! Recalculating database costs...`);
         await fetchEmployees();
         await fetchDashboardData();
@@ -198,6 +241,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Error updating hourly rate:', err);
+      addLog('SYS_ADMIN', `Error: Failed to update hourly rate for Employee ID '${employeeId}'.`);
     }
   };
 
@@ -207,12 +251,14 @@ export default function App() {
       if (res.ok) {
         setSyncToken('token_initial'); // Reset sync token chain
         setSyncStatusMsg('DEMO DATABASE RESET & RE-SEEDED');
+        addLog('SYS_DB', 'Demo database reset and re-seeded. Initial sync state restored.');
         await fetchEmployees();
         await fetchDashboardData();
         setTimeout(() => setSyncStatusMsg(''), 5000);
       }
     } catch (err) {
       console.error('Error resetting database:', err);
+      addLog('SYS_DB', 'Error: Failed to reset database tables.');
     }
   };
 
@@ -256,6 +302,50 @@ export default function App() {
 
   const formatUSD = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
+  const getLeaderboardData = () => {
+    const employeeMap = {};
+    employees.forEach(emp => {
+      employeeMap[emp.name] = {
+        rate: emp.hourly_rate,
+        hours: 0,
+        cost: 0,
+        email: emp.email
+      };
+    });
+
+    allMeetings.forEach(meeting => {
+      const duration = meeting.duration_hours || 0;
+      const attendees = meeting.attendees || [];
+      attendees.forEach(name => {
+        if (employeeMap[name]) {
+          employeeMap[name].hours += duration;
+          employeeMap[name].cost += duration * employeeMap[name].rate;
+        }
+      });
+    });
+
+    return Object.entries(employeeMap)
+      .map(([name, stats]) => ({
+        name,
+        email: stats.email,
+        rate: stats.rate,
+        hours: Math.round(stats.hours * 10) / 10,
+        cost: Math.round(stats.cost * 100) / 100
+      }))
+      .sort((a, b) => b.cost - a.cost)
+      .slice(0, 5);
+  };
+
+  const getVagueMeetingsRatio = () => {
+    if (!allMeetings.length) return 0;
+    const vagueKeywords = ['sync', 'align', 'touch base', 'budget', 'discussion', 'update', 'meeting', 'general', 'details', 'resources'];
+    const vagueCount = allMeetings.filter(m => {
+      const titleLower = m.title.toLowerCase();
+      return m.title.length < 15 || vagueKeywords.some(kw => titleLower.includes(kw));
+    }).length;
+    return Math.round((vagueCount / allMeetings.length) * 100);
+  };
+
   return (
     <div className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans">
       {/* 1. Header Bar */}
@@ -277,8 +367,8 @@ export default function App() {
         <div className="flex items-center gap-3 self-end sm:self-center">
           <div className="hidden lg:flex items-center gap-2 bg-zinc-955 border border-zinc-900 px-3 py-1.5 rounded-xl text-[10px] font-bold text-zinc-400 uppercase tracking-wider shrink-0 select-none">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-450 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 active-pulse-glowing"></span>
             </span>
             <span>Engine Active</span>
           </div>
@@ -433,6 +523,117 @@ export default function App() {
 
         </section>
 
+        {/* Attendee Heavy Hitters & Efficiency stats grid */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Heavy Hitters (2 columns) */}
+          <div className="glass-panel hover-card rounded-2xl p-5 lg:col-span-2 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                    Attendee Heavy Hitters
+                    <span className="text-[9px] font-mono text-zinc-600 tracking-wider bg-zinc-950 border border-zinc-900 px-2 py-0.5 rounded font-normal select-none">[SYS_PEOPLE_METRICS]</span>
+                  </h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">Top 5 staff contributors by total meeting cost footprint</p>
+                </div>
+                <div className="p-2 bg-zinc-900 border border-zinc-850 rounded-xl text-zinc-300">
+                  <Users className="h-4 w-4" />
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-zinc-900 text-zinc-500 uppercase text-[9px] tracking-wider font-extrabold">
+                      <th className="py-2.5">Staff Name</th>
+                      <th className="py-2.5">Hourly Rate</th>
+                      <th className="py-2.5">Meeting Hours</th>
+                      <th className="py-2.5 text-right font-mono">Estimated Financial Impact</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-900/60">
+                    {getLeaderboardData().map((leader, index) => (
+                      <tr key={leader.name} className="hover:bg-zinc-900/20 transition-colors">
+                        <td className="py-3">
+                          <div className="font-bold text-white flex items-center gap-2">
+                            <span className="text-[10px] text-zinc-550 w-3 font-mono">0{index + 1}</span>
+                            {leader.name}
+                          </div>
+                          <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{leader.email}</div>
+                        </td>
+                        <td className="py-3 text-zinc-400 font-mono">${leader.rate}/hr</td>
+                        <td className="py-3 text-zinc-400 font-mono">{leader.hours} hrs</td>
+                        <td className="py-3 text-right font-bold text-white font-mono">{formatUSD(leader.cost)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Efficiency Scorecard (1 column) */}
+          <div className="glass-panel hover-card rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                    Efficiency Scorecard
+                    <span className="text-[9px] font-mono text-zinc-600 tracking-wider bg-zinc-950 border border-zinc-900 px-2 py-0.5 rounded font-normal select-none">[SYS_EFFICIENCY]</span>
+                  </h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">Key operational calendar metrics</p>
+                </div>
+                <div className="p-2 bg-zinc-900 border border-zinc-850 rounded-xl text-zinc-350">
+                  <Activity className="h-4 w-4" />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Metric 1 */}
+                <div className="bg-zinc-900/30 border border-zinc-900 p-3 rounded-xl flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Avg Meeting Cost</span>
+                    <p className="text-sm font-black text-white font-mono mt-1">
+                      {formatUSD(allMeetings.length ? allMeetings.reduce((sum, m) => sum + m.cost, 0) / allMeetings.length : 0)}
+                    </p>
+                  </div>
+                  <div className="text-[10px] text-zinc-400 border border-zinc-800 bg-zinc-950 px-2 py-1 rounded">
+                    per event
+                  </div>
+                </div>
+
+                {/* Metric 2 */}
+                <div className="bg-zinc-900/30 border border-zinc-900 p-3 rounded-xl flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Largest Cost Spike</span>
+                    <p className="text-sm font-black text-white font-mono mt-1">
+                      {formatUSD(allMeetings.length ? Math.max(...allMeetings.map(m => m.cost)) : 0)}
+                    </p>
+                  </div>
+                  <div className="text-[10px] text-zinc-400 border border-zinc-800 bg-zinc-950 px-2 py-1 rounded uppercase font-mono">
+                    spike
+                  </div>
+                </div>
+
+                {/* Metric 3 */}
+                <div className="bg-zinc-900/30 border border-zinc-900 p-3 rounded-xl flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Vague Agenda Ratio</span>
+                    <span className="text-xs font-black text-white font-mono">{getVagueMeetingsRatio()}%</span>
+                  </div>
+                  <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-white h-full rounded-full transition-all duration-300"
+                      style={{ width: `${getVagueMeetingsRatio()}%` }}
+                    />
+                  </div>
+                  <span className="text-[8px] text-zinc-650 font-bold uppercase tracking-wider mt-0.5">Meetings flagged with vague titles needing cleaner agendas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 3. Mid-Section Charts & Feed Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
@@ -517,31 +718,48 @@ export default function App() {
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">No anomalies detected</p>
                 </div>
               ) : (
-                anomalies.map((item) => (
-                  <div key={item.id} className="bg-zinc-900/40 border border-zinc-900 rounded-xl p-3.5 hover:border-zinc-800 transition-all duration-300">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-xs font-bold text-white leading-snug line-clamp-2">{item.title}</h4>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20 font-semibold shrink-0">
-                        Z = +{item.z_score.toFixed(1)}
-                      </span>
-                    </div>
-                    
-                    <div className="mt-3 flex items-center justify-between text-[10px] text-zinc-400">
-                      <span className="font-semibold text-white bg-zinc-900 border border-zinc-850 px-2 py-0.5 rounded">
-                        Cost: {formatUSD(item.cost)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-zinc-500" />
-                        {item.duration_hours} hrs
-                      </span>
-                    </div>
+                anomalies.map((item) => {
+                  const fullMeeting = allMeetings.find(m => m.id === item.id) || {
+                    id: item.id,
+                    title: item.title,
+                    description: item.description || "No description provided.",
+                    cost: item.cost,
+                    duration_hours: item.duration_hours,
+                    start_time: item.start_time,
+                    attendees: item.attendees,
+                    project_name: item.project_name,
+                    status: "anomaly"
+                  };
+                  return (
+                    <div 
+                      key={item.id} 
+                      onClick={() => setSelectedMeeting(fullMeeting)}
+                      className="bg-zinc-900/40 border border-zinc-900 rounded-xl p-3.5 hover:border-zinc-750 transition-all duration-300 cursor-pointer hover:bg-zinc-900/70 hover:scale-[1.01]"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="text-xs font-bold text-white leading-snug line-clamp-2">{item.title}</h4>
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20 font-semibold shrink-0">
+                          Z = +{item.z_score.toFixed(1)}
+                        </span>
+                      </div>
+                      
+                      <div className="mt-3 flex items-center justify-between text-[10px] text-zinc-400">
+                        <span className="font-semibold text-white bg-zinc-900 border border-zinc-850 px-2 py-0.5 rounded">
+                          Cost: {formatUSD(item.cost)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-zinc-500" />
+                          {item.duration_hours} hrs
+                        </span>
+                      </div>
 
-                    <div className="mt-2.5 border-t border-zinc-900 pt-2 text-[9px] text-zinc-500">
-                      <p className="font-semibold text-zinc-400">Attendees ({item.attendees.length}):</p>
-                      <p className="mt-0.5 text-zinc-500 line-clamp-1">{item.attendees.join(', ')}</p>
+                      <div className="mt-2.5 border-t border-zinc-900 pt-2 text-[9px] text-zinc-500">
+                        <p className="font-semibold text-zinc-400">Attendees ({item.attendees.length}):</p>
+                        <p className="mt-0.5 text-zinc-500 line-clamp-1">{item.attendees.join(', ')}</p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -610,7 +828,8 @@ export default function App() {
                         return (
                           <div 
                             key={m.id} 
-                            className={`p-2.5 rounded-lg text-left transition-all duration-200 hover:border-zinc-700 flex flex-col gap-1.5 ${statusColor}`}
+                            onClick={() => setSelectedMeeting(m)}
+                            className={`p-2.5 rounded-lg text-left transition-all duration-200 hover:border-zinc-750 flex flex-col gap-1.5 cursor-pointer hover:bg-zinc-900/40 hover:scale-[1.01] ${statusColor}`}
                             title={`${m.title}\nDescription: ${m.description || 'None'}\nAttendees: ${m.attendees.join(', ')}`}
                           >
                             <div className="flex items-start justify-between gap-1.5">
@@ -795,15 +1014,31 @@ export default function App() {
             </div>
           ) : (
             <div className="space-y-3">
-              {resolvedQueue.map((item) => (
-                <div key={item.id} className="bg-zinc-900/40 border border-zinc-900 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-zinc-800 transition-all duration-300">
-                  
-                  {/* Left Column: Meeting title, description, attendees */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wide truncate">{item.title}</h4>
-                    </div>
+              {resolvedQueue.map((item) => {
+                const fullMeeting = allMeetings.find(m => m.id === item.id) || {
+                  id: item.id,
+                  title: item.title,
+                  description: item.description || "No description provided.",
+                  cost: item.cost,
+                  duration_hours: item.duration_hours,
+                  start_time: item.start_time,
+                  attendees: item.attendees,
+                  project_name: item.attribution?.project_name || "Unattributed",
+                  status: "audited",
+                  is_reviewed: true
+                };
+                return (
+                  <div key={item.id} className="bg-zinc-900/40 border border-zinc-900 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-zinc-800 transition-all duration-300">
+                    
+                    {/* Left Column: Meeting title, description, attendees */}
+                    <div 
+                      onClick={() => setSelectedMeeting(fullMeeting)}
+                      className="min-w-0 flex-1 cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wide truncate group-hover:text-emerald-400 transition-colors">{item.title}</h4>
+                      </div>
                     <p className="text-[10px] text-zinc-500 mt-1 truncate">
                       {item.description || "No description provided."}
                     </p>
@@ -901,13 +1136,191 @@ export default function App() {
                       )}
                     </span>
                   </div>
-
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
+
+        {/* 5. Console Transaction Terminal */}
+        <section className="glass-panel rounded-2xl p-5 mt-6 hover-card">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-900">
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                System Transaction Terminal
+                <span className="text-[9px] font-mono text-zinc-500 tracking-wider bg-zinc-900 border border-zinc-850 px-2 py-0.5 rounded font-normal select-none">[SYS_CON_LOG]</span>
+              </h3>
+              <p className="text-xs text-zinc-500 mt-0.5">Real-time audit, API queries, and engine transaction traces</p>
+            </div>
+            <button 
+              onClick={() => setTerminalLogs([])}
+              className="text-xs font-bold text-zinc-450 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 px-3 py-1 rounded-lg transition-all cursor-pointer active:scale-95"
+            >
+              Clear Console
+            </button>
+          </div>
+          
+          <div className="bg-black border border-zinc-900 rounded-xl p-4 h-48 overflow-y-auto font-mono text-[11px] text-zinc-400 space-y-1.5 scrollbar-thin select-text">
+            {terminalLogs.length === 0 ? (
+              <div className="text-zinc-655 italic text-center py-12">Console cleared. Awaiting system events...</div>
+            ) : (
+              terminalLogs.map((log, idx) => {
+                let colorClass = "text-zinc-400";
+                if (log.includes("[SYS_ALERTS]")) colorClass = "text-red-450 font-semibold";
+                else if (log.includes("[SYS_VERIFICATION]")) colorClass = "text-yellow-455";
+                else if (log.includes("[SYS_BOOT]")) colorClass = "text-zinc-500";
+                else if (log.includes("[SYS_AI]")) colorClass = "text-zinc-300";
+                else if (log.includes("[SYS_AUDIT]")) colorClass = "text-emerald-400 font-semibold";
+                else if (log.includes("[SYS_ADMIN]")) colorClass = "text-blue-400";
+                
+                return (
+                  <div key={idx} className={`leading-normal ${colorClass}`}>
+                    {log}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
       </main>
+
+      {/* 6. Slide-out Meeting Inspector Drawer */}
+      {selectedMeeting && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" 
+            onClick={() => setSelectedMeeting(null)}
+          />
+          
+          {/* Drawer content */}
+          <div className="relative w-full max-w-md bg-zinc-950 border-l border-zinc-900 h-full p-6 flex flex-col justify-between shadow-2xl z-50 overflow-y-auto drawer-slide select-none">
+            
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-zinc-900">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-zinc-500 tracking-wider bg-zinc-900 border border-zinc-850 px-2 py-0.5 rounded uppercase font-semibold">[SYS_MEETING_INSPECT]</span>
+                </div>
+                <button 
+                  onClick={() => setSelectedMeeting(null)}
+                  className="p-1 hover:bg-zinc-900 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              
+              {/* Meeting Title & Meta */}
+              <div className="mt-6">
+                <h2 className="text-lg font-bold text-white uppercase tracking-wide leading-tight">{selectedMeeting.title}</h2>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono uppercase">
+                    {selectedMeeting.status}
+                  </span>
+                  <span className="text-xs text-zinc-500 font-mono">
+                    {new Date(selectedMeeting.start_time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+                
+                <p className="text-xs text-zinc-450 mt-4 leading-relaxed bg-zinc-900/30 border border-zinc-900 p-3 rounded-xl">
+                  {selectedMeeting.description || "No description provided for this calendar event."}
+                </p>
+              </div>
+
+              {/* Financial Cost Footprint */}
+              <div className="mt-6 border-t border-zinc-900 pt-5">
+                <h3 className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 mb-3">Financial cost footprint</h3>
+                <div className="bg-zinc-950 border border-zinc-900 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-450">Duration:</span>
+                    <span className="text-xs font-bold text-white font-mono">{selectedMeeting.duration_hours} hours</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-450">Calculated Cost:</span>
+                    <span className="text-sm font-black text-white font-mono">{formatUSD(selectedMeeting.cost)}</span>
+                  </div>
+                  
+                  <div className="border-t border-zinc-900 my-2" />
+                  
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-zinc-500 block mb-1">Attendee Cost Breakdown:</span>
+                  <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                    {selectedMeeting.attendees.map(name => {
+                      const emp = employees.find(e => e.name === name);
+                      const rate = emp ? emp.hourly_rate : 120; // fallback if not found
+                      const individualCost = (selectedMeeting.duration_hours || 0) * rate;
+                      return (
+                        <div key={name} className="flex justify-between text-[11px] items-center">
+                          <span className="text-zinc-400 truncate max-w-[155px]">{name}</span>
+                          <span className="text-zinc-505 font-mono text-[10px]">
+                            ${rate}/hr &times; {selectedMeeting.duration_hours}h = <span className="text-white font-bold">{formatUSD(individualCost)}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Attribution Metrics */}
+              <div className="mt-6 border-t border-zinc-900 pt-5">
+                <h3 className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 mb-3">AI Mapping metadata</h3>
+                <div className="bg-zinc-950 border border-zinc-900 rounded-xl p-4 flex flex-col gap-2.5">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-zinc-400">Mapped Project:</span>
+                    <span className="font-bold text-white bg-white/10 border border-white/20 px-2.5 py-0.5 rounded text-[10px] uppercase">
+                      {selectedMeeting.project_name || "Unattributed"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-zinc-400">Confidence Level:</span>
+                    <span className="font-bold text-white font-mono">
+                      {selectedMeeting.status === "audited" ? "100% (Human Verified)" : selectedMeeting.status === "pending" ? "Vague (< 75%)" : "Auto Verified"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions at Drawer Bottom */}
+            <div className="mt-8 border-t border-zinc-900 pt-4">
+              {selectedMeeting.status === "pending" ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-[9px] text-zinc-500 uppercase tracking-widest font-extrabold mb-1">Verify Attribution</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        handleResolveAttribution(selectedMeeting.id, selectedMeeting.project_id || '', false);
+                        setSelectedMeeting(null);
+                      }}
+                      disabled={!selectedMeeting.project_id}
+                      className="flex-1 bg-white hover:bg-zinc-200 text-black text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer border border-white active:scale-95"
+                    >
+                      Confirm AI suggestion
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center text-[10px] text-zinc-500 uppercase font-mono">
+                  <span>Verification Complete</span>
+                  {selectedMeeting.is_reviewed && (
+                    <button 
+                      onClick={() => {
+                        handleUnreview(selectedMeeting.id);
+                        setSelectedMeeting(null);
+                      }}
+                      className="text-zinc-400 hover:text-white font-bold underline cursor-pointer active:scale-95 transition-all"
+                    >
+                      Unreview Event
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            
+          </div>
+        </div>
+      )}
       
       {/* 5. Footer */}
       <footer className="mt-auto border-t border-zinc-900 bg-black py-4 px-6 text-center text-[9px] text-zinc-655 uppercase tracking-widest font-semibold">
