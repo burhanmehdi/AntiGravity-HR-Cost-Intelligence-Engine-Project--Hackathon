@@ -7,14 +7,33 @@
 <img width="1918" height="1062" alt="Screenshot 2026-06-13 143810" src="https://github.com/user-attachments/assets/249b20cf-90e2-4d17-a5a1-bf07d024f57d" />
 </p>
 </b>
-> [!IMPORTANT]
-> ## 🧑‍⚖️ Dear Hackathon Judges
-> For the best evaluation experience, I have prepared a dedicated, high-fidelity **[Judges' Guide](JUDGES_GUIDE.md)**. Please refer to it for a straightforward breakdown of the project, including:
-> 
-> 1. **Core Calculations**: Detailed explanations of exactly how meeting costs and payroll impacts are dynamically computed.
-> 2. **Z-Score Math**: A look under the hood at the statistical logic used to flag anomalies and trigger audits.
-> 3. **System Flows**: Clear architectural outlines showing how data moves from calendar ingestion to AI attribution.
-> 4. **Step-by-Step Walkthrough**: A guided demonstration to help you easily navigate, test, and experience the full-stack dashboard.
+## 👨‍⚖️ Important Note for Hackathon Judges
+
+For the best evaluation experience, please review the dedicated Judges' Guide:
+
+📖 **[JUDGES_GUIDE.md](./JUDGES_GUIDE.md)**
+
+The guide includes:
+
+### 1. Core Calculations
+- Detailed explanation of meeting cost computation
+- Payroll impact calculations
+- Financial attribution methodology
+
+### 2. Z-Score Anomaly Detection
+- Statistical approach used for anomaly identification
+- Audit trigger logic
+- Risk scoring methodology
+
+### 3. System Architecture
+- End-to-end data flow diagrams
+- Calendar ingestion pipeline
+- AI-powered project attribution workflow
+
+### 4. Product Walkthrough
+- Step-by-step platform demonstration
+- Dashboard navigation guide
+- Testing instructions
 
 Meetings are one of the largest hidden expenditures in modern organizations. The **HR Cost Intelligence Engine** is a full-stack dashboard designed to solve this by ingesting calendar events, dynamically calculating meeting financial costs, mapping them to project codes using AI, flagging statistical cost anomalies, and providing manager review controls.
 
