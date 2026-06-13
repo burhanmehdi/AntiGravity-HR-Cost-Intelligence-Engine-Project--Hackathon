@@ -5,10 +5,10 @@ Meetings are one of the largest hidden expenditures in modern organizations. The
 
 ---
 
-## 💡 The Core Problem & Our Simple Solution
+## 💡 The Core Problem & The Simple Solution
 
 *   **The Problem**: A calendar invitation seems "free," but dragging 6 highly-paid engineers into an unscheduled 3-hour sync can cost a company thousands of dollars. Even worse, managers have no way to map these meeting costs to project budgets.
-*   **The Solution**: We ingest calendar event feeds, dynamically compute meeting costs using employee payroll rates, run AI to attribute the meeting to the correct project, flag statistical outliers, and provide a manager approval queue.
+*   **The Solution**: The engine ingests calendar event feeds, dynamically computes meeting costs using employee payroll rates, runs AI to attribute the meeting to the correct project, flags statistical outliers, and provides a manager approval queue.
 
 ---
 
@@ -33,7 +33,7 @@ Meetings don't come pre-tagged with project codes. The engine reads the meeting 
 *   **Smart Fallback Mode**: If you don't supply an `OPENAI_API_KEY`, the engine automatically switches to a local keyword-matching algorithm, mapping terms like *space/rocket* to Apollo and *security/firewall* to Zeus.
 
 ### 3. Z-Score Anomaly Detector
-How do we find expensive meeting spikes? We use a statistical formula called a **Z-Score** to compare a meeting's cost against all past meetings:
+How does the engine find expensive meeting spikes? It uses a statistical formula called a **Z-Score** to compare a meeting's cost against all past meetings:
 $$\text{Z-Score} = \frac{\text{Current Meeting Cost} - \text{Average Cost of All Meetings}}{\text{Standard Deviation of Costs}}$$
 
 *   If a meeting's cost is more than **2.0 standard deviations** away from the company average, it is flagged as a red **`SPIKE` (Anomaly)**.
@@ -63,7 +63,7 @@ A client-side audit logger records API queries, Google Calendar syncs, manager r
 
 ## 🗺️ System Flow (How Data Moves)
 
-The diagram below shows how a calendar sync event flows through our AI attribution, cost calculation, anomaly detection, and human review system:
+The diagram below shows how a calendar sync event flows through the AI attribution, cost calculation, anomaly detection, and human review system:
 
 ```mermaid
 graph TD

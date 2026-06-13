@@ -3,7 +3,7 @@
 
 > [!IMPORTANT]
 > **Dear Hackathon Judges:**
-> We have prepared a dedicated, high-fidelity **[Judges' Guide (JUDGES_GUIDE.md)](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/JUDGES_GUIDE.md)** which explains the core calculations, Z-Score math, and system flows in simple terms, alongside a step-by-step demonstration walkthrough. Please refer to it for the best evaluation experience!
+> I have prepared a dedicated, high-fidelity **[Judges' Guide (JUDGES_GUIDE.md)](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/JUDGES_GUIDE.md)** which explains the core calculations, Z-Score math, and system flows in simple terms, alongside a step-by-step demonstration walkthrough. Please refer to it for the best evaluation experience!
 
 Meetings are one of the largest hidden expenditures in modern organizations. The **HR Cost Intelligence Engine** is a full-stack dashboard designed to solve this by ingesting calendar events, dynamically calculating meeting financial costs, mapping them to project codes using AI, flagging statistical cost anomalies, and providing manager review controls.
 
