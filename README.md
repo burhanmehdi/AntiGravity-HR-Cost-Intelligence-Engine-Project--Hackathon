@@ -1,4 +1,4 @@
-# 📊 HR Cost Intelligence Engine
+## HR Cost Intelligence Engine
 ### AI-Powered Calendar Resource & Meeting Cost Analytics (Hackathon Submission)
 
 ## Project preview
@@ -16,7 +16,7 @@
 </p>
 </b>
 
-##** Important Note for Hackathon Judges**
+## ** Important Note for Hackathon Judges**
 
 For the best evaluation experience, please review the dedicated Judges' Guide:
 
