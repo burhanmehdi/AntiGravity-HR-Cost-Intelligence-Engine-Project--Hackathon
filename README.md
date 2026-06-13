@@ -19,6 +19,14 @@
 <img width="552" height="862" alt="image" src="https://github.com/user-attachments/assets/af5e58d2-ab5c-44d7-b48f-2e3feb8ef107" />
 </p>
 </b>
+<p align="center">
+<img width="1917" height="845" alt="image" src="https://github.com/user-attachments/assets/06fa1909-ba34-4cec-b1ce-9df12fa0c8c0" />
+</p>
+</b>
+<p align="center">
+<img width="1907" height="867" alt="image" src="https://github.com/user-attachments/assets/e363444f-2b30-4a0f-a880-3b036085ae4e" />
+</p>
+</b>
 
 
 ## Important Note for Hackathon Judges
