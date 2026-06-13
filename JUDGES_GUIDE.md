@@ -1,0 +1,136 @@
+# 👨‍⚖️ Hackathon Judges' Guide: HR Cost Intelligence Engine
+### AI-Powered Calendar Resource & Meeting Cost Analytics
+
+Meetings are one of the largest hidden expenditures in modern organizations. The **HR Cost Intelligence Engine** is a full-stack platform that transforms passive calendar data into an active financial ledger. It calculates meeting costs based on attendee salaries, uses AI to attribute meeting hours to project budgets, flags cost spikes, and provides human-in-the-loop review.
+
+---
+
+## 💡 The Core Problem & Our Simple Solution
+
+*   **The Problem**: A calendar invitation seems "free," but dragging 6 highly-paid engineers into an unscheduled 3-hour sync can cost a company thousands of dollars. Even worse, managers have no way to map these meeting costs to project budgets.
+*   **The Solution**: We ingest calendar event feeds, dynamically compute meeting costs using employee payroll rates, run AI to attribute the meeting to the correct project, flag statistical outliers, and provide a manager approval queue.
+
+---
+
+## ⚙️ How the Engine Works (Explained Simply)
+
+The system is built on **four core engines** working together in real time:
+
+### 1. Cost Estimation Engine
+Whenever a calendar sync occurs, the system calculates the actual monetary cost of a meeting using this simple formula:
+$$\text{Meeting Cost} = \text{Duration (hours)} \times \sum (\text{Attendee Hourly Rates})$$
+
+*   *Example*: A 2-hour launch meeting attended by:
+    *   **Aarav Sharma** (Lead Engineer - \$250/hr)
+    *   **Zeeshan Khan** (Product Manager - \$180/hr)
+    *   **Priya Patel** (UX Designer - \$120/hr)
+*   *Calculation*: $2.0 \text{ hours} \times (\$250 + \$180 + \$120) = \$1,100$.
+
+### 2. AI Project Attribution Engine
+Meetings don't come pre-tagged with project codes. The engine reads the meeting title and description and maps it to the correct project (e.g., *Project Apollo*).
+*   **High Confidence ($\ge 75\%$)**: Auto-assigned.
+*   **Low Confidence ($< 75\%$)**: Occurs when meeting titles are vague (like *"Touch base"* or *"Quick sync"*). The engine flags these and routes them to the **Human-in-the-Loop Review Queue** for a manager to approve.
+*   **Smart Fallback Mode**: If you don't supply an `OPENAI_API_KEY`, the engine automatically switches to a local keyword-matching algorithm, mapping terms like *space/rocket* to Apollo and *security/firewall* to Zeus.
+
+### 3. Z-Score Anomaly Detector
+How do we find expensive meeting spikes? We use a statistical formula called a **Z-Score** to compare a meeting's cost against all past meetings:
+$$\text{Z-Score} = \frac{\text{Current Meeting Cost} - \text{Average Cost of All Meetings}}{\text{Standard Deviation of Costs}}$$
+
+*   If a meeting's cost is more than **2.0 standard deviations** away from the company average, it is flagged as a red **`SPIKE` (Anomaly)**.
+*   *Why this matters*: A 6-hour emergency security breach meeting involving 7 leaders costs **\$4,275**. The system immediately flags this outlier so HR can investigate why it took so long.
+
+### 4. Dynamic Payroll Recalculator
+If a manager goes to the admin config and changes an employee's hourly rate (e.g., promoting them from \$120/hr to \$150/hr), the engine:
+*   Automatically finds all unreviewed meetings that employee attended.
+*   Recalculates their costs.
+*   Re-runs the Z-score anomaly check.
+*   Updates the dashboard charts and stats instantly!
+
+---
+
+## 🗺️ System Flow (How Data Moves)
+
+The diagram below shows how a calendar sync event flows through our AI attribution, cost calculation, anomaly detection, and human review system:
+
+```mermaid
+graph TD
+    A[Google Calendar Sync Event] --> B(Cost Estimation Engine)
+    B -->|Duration * Attendees Rates| C[Calculate Meeting Cost]
+    C --> D(Z-Score Anomaly Detector)
+    D -->|Z-Score > 2.0| E[Flag as SPIKE Anomaly]
+    D -->|Z-Score <= 2.0| F[Standard Cost]
+    
+    C --> G(AI Project Mapping Engine)
+    G -->|Confidence >= 75%| H[Auto-Attribute to Project]
+    G -->|Confidence < 75%| I[Flag as AUDIT Required]
+    
+    E --> J[Dashboard Routing]
+    F --> J
+    H --> J
+    I --> J
+    
+    J --> K{Meeting Status?}
+    K -->|Requires Review| L[Human-in-the-Loop Review Queue]
+    K -->|Auto-Assigned & Normal| M[Calendar View: Grey Badge]
+    K -->|Outlier Cost Spike| N[Cost Anomalies Feed & Red Badge]
+    
+    L -->|Manager Reassigns / Confirms| O[Audit Log & Green Badge]
+    O -->|Project Budget Charts Update| P[(SQLite Database)]
+```
+
+---
+
+## 🏆 Interactive Demonstration (Step-by-Step)
+
+Follow this 5-step walkthrough to experience the entire system in action:
+
+### Step 1: Examine the Base Dashboard
+Open [http://localhost:5173](http://localhost:5173). Notice:
+*   **Project Expenditure Chart**: A flat side-by-side vertical bar chart comparing the **Allocated Budget** vs **Actual Spent** for 5 projects.
+*   **Calendar Audit Schedule**: A daily view showing meetings categorized by color-coded status badges:
+    *   🟢 **`OK`**: Audited and approved by a manager.
+    *   🔘 **`AI`**: Auto-assigned by AI with high confidence.
+    *   🟡 **`AUDIT`**: Pending manager review (due to low AI confidence).
+    *   🔴 **`SPIKE`**: Statistical cost anomaly.
+
+### Step 2: Trigger the Google Calendar Sync Simulator
+Click the white **"Simulate Calendar Sync"** button in the top right. This simulates Google's incremental sync token cycle:
+1.  **Click 1 (Syncing Phase 1)**: Syncs regular engineering and marketing syncs. Watch them turn into grey **`AI`** badges on the calendar.
+2.  **Click 2 (Syncing Phase 2)**: Syncs a massive security incident response meeting. Because it lasts 6 hours and includes 6 attendees, it costs **\$4,275**. Watch it immediately display as a red **`SPIKE`** on the calendar and appear in the **Cost Anomalies** feed.
+3.  **Click 3 (Syncing Phase 3)**: Syncs a meeting titled *"Touch base about resources."* Since the title is highly ambiguous, the AI assigns it low confidence. Watch it appear as a dashed yellow **`AUDIT`** card on the calendar and route into the **Human-in-the-Loop Review Queue**.
+
+### Step 3: Act as the Human-in-the-Loop Manager
+Go to the **Human-in-the-Loop Review Queue**:
+1.  Look at the card for *"Touch base about resources"*. You can see the AI's confidence bar and its reasoning.
+2.  Select **"Project Athena (AI Platform)"** from the dropdown menu.
+3.  Click **"Reassign"**.
+4.  **Observe**:
+    *   The card leaves the review queue.
+    *   The meeting card on the calendar instantly turns green (**`OK`**).
+    *   The *Project Athena* spent bar on the chart increases.
+    *   The item appears in the **Resolution History / Audit Log** at the bottom.
+
+### Step 4: Test the Re-Allotment & Return Controls
+In the **Resolution History / Audit Log** at the bottom:
+1.  Locate the meeting you just resolved.
+2.  Click **"Re-allot Project"**.
+3.  Click **"Unsure? Send to Review Queue"**.
+4.  **Observe**: The meeting instantly returns to the pending review queue, turns back into a dashed yellow **`AUDIT`** badge on the calendar, and the project chart recalculates to subtract its cost.
+
+### Step 5: Admin Payroll Rate Configuration
+1.  Click **"Payroll Config"** in the top-right header to toggle the admin drawer.
+2.  Find **Aarav Sharma** (Lead Engineer) and change his rate from **\$250** to **\$500**.
+3.  Click anywhere outside the input box to trigger the update.
+4.  **Observe**: The backend dynamically recalculates the costs for all of Aarav's meetings. Notice the **Total Fin. Expenditure** KPI card increment, the bar chart update, and any new cost spikes show up in the alerts feed!
+
+---
+
+## 📂 Codebase Breakdown: What Does What?
+
+*   [backend/app/main.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/main.py): Exposes REST APIs, manages database session transactions, handles human reviews, triggers employee rate changes, and simulates calendar sync phases.
+*   [backend/app/anomaly.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/anomaly.py): Houses the mathematical helper functions. Calculates basic meeting costs and computes standard deviation to find Z-score outliers.
+*   [backend/app/ai_service.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/ai_service.py): Manages LLM connections. Queries OpenAI Structured Outputs to map meetings to project metadata. Automatically switches to a local keyword-matching algorithm if the API key is missing.
+*   [backend/app/seed.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/seed.py): Populates the SQLite database with 5 distinct projects (Apollo, Zeus, Marketing, Operations, Athena), 7 employees with realistic hourly rates, and 21 historical meetings.
+*   [backend/app/models.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/models.py): Defines SQLite database tables (Projects, Employees, Meetings, Attributions) using SQLAlchemy.
+*   [frontend/src/App.jsx](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/frontend/src/App.jsx): The single-page dashboard. Houses KPI metrics, project bar charts (Recharts), calendar grid, anomalies feed, review queue, audit history log, and sync controls.
+*   [frontend/src/index.css](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/frontend/src/index.css): Sets up styling rules, including custom styling for card borders and the high-tech dot-matrix grid layout background.
