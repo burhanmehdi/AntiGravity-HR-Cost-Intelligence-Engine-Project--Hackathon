@@ -44,7 +44,15 @@ If a manager goes to the admin config and changes an employee's hourly rate (e.g
 *   Automatically finds all unreviewed meetings that employee attended.
 *   Recalculates their costs.
 *   Re-runs the Z-score anomaly check.
-*   Updates the dashboard charts and stats instantly!
+*   Updates the dashboard charts, metrics, and leaderboards instantly!
+
+### 5. Attendee Cost Footprint Engine
+To identify who is driving meeting costs, the engine dynamically aggregates the total monetary impact of each staff member across all calendar meetings they attend:
+$$\text{Staff Footprint} = \sum (\text{Meeting Duration} \times \text{Staff Hourly Rate})$$
+The top 5 are displayed in the **Attendee Heavy Hitters Leaderboard**.
+
+### 6. Real-Time Transaction Logger
+A client-side audit logger records API queries, Google Calendar syncs, manager resolutions, and rate configurations, piping them into a CLI-style scrollable console box.
 
 ---
 
@@ -86,42 +94,34 @@ Follow this 5-step walkthrough to experience the entire system in action:
 
 ### Step 1: Examine the Base Dashboard
 Open [http://localhost:5173](http://localhost:5173). Notice:
+*   **Attendee Heavy Hitters**: Details the top 5 employees by total meeting cost footprint.
+*   **Efficiency Scorecard**: Displays Average Cost per Meeting, Largest Cost Spike, and Vague Agenda Ratio.
 *   **Project Expenditure Chart**: A flat side-by-side vertical bar chart comparing the **Allocated Budget** vs **Actual Spent** for 5 projects.
-*   **Calendar Audit Schedule**: A daily view showing meetings categorized by color-coded status badges:
-    *   🟢 **`OK`**: Audited and approved by a manager.
-    *   🔘 **`AI`**: Auto-assigned by AI with high confidence.
-    *   🟡 **`AUDIT`**: Pending manager review (due to low AI confidence).
-    *   🔴 **`SPIKE`**: Statistical cost anomaly.
+*   **Calendar Audit Schedule**: A daily view showing meetings categorized by color-coded status badges.
+*   **System Transaction Terminal**: A monospace log terminal at the very bottom tracking engine actions in real-time.
 
 ### Step 2: Trigger the Google Calendar Sync Simulator
 Click the white **"Simulate Calendar Sync"** button in the top right. This simulates Google's incremental sync token cycle:
-1.  **Click 1 (Syncing Phase 1)**: Syncs regular engineering and marketing syncs. Watch them turn into grey **`AI`** badges on the calendar.
-2.  **Click 2 (Syncing Phase 2)**: Syncs a massive security incident response meeting. Because it lasts 6 hours and includes 6 attendees, it costs **\$4,275**. Watch it immediately display as a red **`SPIKE`** on the calendar and appear in the **Cost Anomalies** feed.
-3.  **Click 3 (Syncing Phase 3)**: Syncs a meeting titled *"Touch base about resources."* Since the title is highly ambiguous, the AI assigns it low confidence. Watch it appear as a dashed yellow **`AUDIT`** card on the calendar and route into the **Human-in-the-Loop Review Queue**.
+1.  **Click 1 (Syncing Phase 1)**: Syncs regular engineering and marketing meetings. Watch them turn into grey **`AI`** badges on the calendar, and view the corresponding ingest traces in the bottom console terminal.
+2.  **Click 2 (Syncing Phase 2)**: Syncs a massive security incident response meeting ($4,275). Watch it display as a red **`SPIKE`** on the calendar and in the alerts feed, while the terminal outputs a bold red `[SYS_ALERTS]` message.
+3.  **Click 3 (Syncing Phase 3)**: Syncs an ambiguous meeting (*"Touch base about resources"*). Watch it appear as a dashed yellow **`AUDIT`** card on the calendar and route into the review queue, logged in yellow inside the console.
 
-### Step 3: Act as the Human-in-the-Loop Manager
-Go to the **Human-in-the-Loop Review Queue**:
-1.  Look at the card for *"Touch base about resources"*. You can see the AI's confidence bar and its reasoning.
-2.  Select **"Project Athena (AI Platform)"** from the dropdown menu.
-3.  Click **"Reassign"**.
-4.  **Observe**:
-    *   The card leaves the review queue.
-    *   The meeting card on the calendar instantly turns green (**`OK`**).
-    *   The *Project Athena* spent bar on the chart increases.
-    *   The item appears in the **Resolution History / Audit Log** at the bottom.
+### Step 3: Act as the Human-in-the-Loop Manager & Open Inspector
+1.  Click **any meeting card** in the daily calendar, the anomalies list, or the resolved log.
+2.  **Observe**: A sleek **Details Inspector Drawer** slides in from the right, showing duration, attendee individual cost calculations ($hours \times rate$), and AI attribution parameters. Close it.
+3.  Go to the **Human-in-the-Loop Review Queue**, select **"Project Athena (AI Platform)"** from the dropdown menu, and click **"Reassign"**.
+4.  **Observe**: The card leaves the queue, turns green (**`OK`**) on the calendar, updates the charts, and prints an emerald `[SYS_AUDIT]` log in the terminal.
 
 ### Step 4: Test the Re-Allotment & Return Controls
 In the **Resolution History / Audit Log** at the bottom:
-1.  Locate the meeting you just resolved.
-2.  Click **"Re-allot Project"**.
-3.  Click **"Unsure? Send to Review Queue"**.
-4.  **Observe**: The meeting instantly returns to the pending review queue, turns back into a dashed yellow **`AUDIT`** badge on the calendar, and the project chart recalculates to subtract its cost.
+1.  Locate the meeting you just resolved. Click its left text details column to inspect the details drawer, then close it.
+2.  Click **"Re-allot Project"** and select **"Unsure? Send to Review Queue"**.
+3.  **Observe**: The meeting returns to the pending queue, turns back into a dashed yellow **`AUDIT`** badge, updates the charts, and logs the action in the console.
 
-### Step 5: Admin Payroll Rate Configuration
+### Step 5: Admin Payroll Rate Configuration & Leaderboard Updates
 1.  Click **"Payroll Config"** in the top-right header to toggle the admin drawer.
-2.  Find **Aarav Sharma** (Lead Engineer) and change his rate from **\$250** to **\$500**.
-3.  Click anywhere outside the input box to trigger the update.
-4.  **Observe**: The backend dynamically recalculates the costs for all of Aarav's meetings. Notice the **Total Fin. Expenditure** KPI card increment, the bar chart update, and any new cost spikes show up in the alerts feed!
+2.  Find **Aarav Sharma** (Lead Engineer) and change his rate from **\$250** to **\$500**. Click outside the input box.
+3.  **Observe**: Both the spent charts and the **Attendee Heavy Hitters Leaderboard** recalculate Aarav's total financial impact instantly, while the console prints a blue `[SYS_ADMIN]` trace.
 
 ---
 
@@ -132,5 +132,5 @@ In the **Resolution History / Audit Log** at the bottom:
 *   [backend/app/ai_service.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/ai_service.py): Manages LLM connections. Queries OpenAI Structured Outputs to map meetings to project metadata. Automatically switches to a local keyword-matching algorithm if the API key is missing.
 *   [backend/app/seed.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/seed.py): Populates the SQLite database with 5 distinct projects (Apollo, Zeus, Marketing, Operations, Athena), 7 employees with realistic hourly rates, and 21 historical meetings.
 *   [backend/app/models.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/models.py): Defines SQLite database tables (Projects, Employees, Meetings, Attributions) using SQLAlchemy.
-*   [frontend/src/App.jsx](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/frontend/src/App.jsx): The single-page dashboard. Houses KPI metrics, project bar charts (Recharts), calendar grid, anomalies feed, review queue, audit history log, and sync controls.
-*   [frontend/src/index.css](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/frontend/src/index.css): Sets up styling rules, including custom styling for card borders and the high-tech dot-matrix grid layout background.
+*   [frontend/src/App.jsx](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/frontend/src/App.jsx): The single-page dashboard. Houses KPI metrics, Heavy Hitters leaderboards, Recharts project spent bars, daily calendar schedule, anomalies alerts feed, human-in-the-loop review queue, audit logs, real-time logging terminal, and the slide-out inspector drawer.
+*   [frontend/src/index.css](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/frontend/src/index.css): Sets up styling rules, including glassmorphism cards, interactive hover elevations, drawer slide transitions, pulse animations, custom scrollbars, and the dot-matrix grid layout background.

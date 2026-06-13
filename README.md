@@ -11,17 +11,16 @@ Meetings are one of the largest hidden expenditures in modern organizations. The
 
 ## 🚀 Key Features for Judges
 
-1. **AI-Powered Project Mapping**: Automatically parses meeting titles and descriptions to attribute them to projects (e.g., *Project Apollo*, *Project Zeus*). Uses **OpenAI Structured Outputs** with a robust, zero-configuration local keyword heuristic fallback if no API key is provided.
+1. **AI-Powered Project Mapping**: Automatically parses meeting titles and descriptions to attribute them to projects (e.g., *Project Apollo*, *Project Zeus*). Uses **OpenAI Structured Outputs** with a robust fallback.
 2. **Cost Estimation Engine**: Dynamically calculates meeting costs based on duration and employee payroll hourly rates:
    $$\text{Meeting Cost} = \text{Duration (hours)} \times \sum (\text{Attendee Hourly Rates})$$
 3. **Z-Score Anomaly Detector**: Employs historical standard deviation to flag meeting cost outliers ($|Z| > 2.0$) in real-time.
-4. **Calendar Audit Schedule Grid**: A visual, daily calendar timeline categorizing all meetings by their current verification state:
-   - 🟢 **`OK`**: Audited and confirmed by HR.
-   - 🔘 **`AI`**: Auto-assigned by AI with high confidence.
-   - 🟡 **`AUDIT`**: Flagged for HR manager review (confidence $< 75\%$).
-   - 🔴 **`SPIKE`**: Flagged as a statistical cost outlier.
-5. **HR Re-allotment Controls**: HR managers can reassign/re-allot project mappings directly from the audit log or send meetings back to the review queue if they are unsure.
-6. **Google Calendar Sync Simulator**: An interactive simulator that pushes new calendar events to the engine in real-time, demonstrating live data ingestion, Z-score alerts, and queue routing.
+4. **Attendee "Heavy Hitters" Leaderboard & Scorecard**: Dynamic table showing top 5 staff members by meeting cost impact, alongside Average Cost, Largest Spike, and Vague Agenda Ratio.
+5. **Interactive Details Inspector Drawer**: Slidout details panel showing individual attendee cost calculations, duration, and confidence metrics on click.
+6. **Real-time Logging Terminal**: Scrollable monospace terminal console detailing live engine transactions (syncing, audits, rates updates).
+7. **Calendar Audit Schedule Grid**: A visual, daily calendar timeline categorizing all meetings by state (`OK`, `AI`, `AUDIT`, `SPIKE`).
+8. **HR Re-allotment Controls**: HR managers can reassign mappings or return meetings back to the review queue.
+9. **Google Calendar Sync Simulator**: Incremental sync simulator feeding events in real-time.
 
 ---
 
@@ -121,12 +120,12 @@ npm run dev
 
 *For a detailed walkthrough, please see the **[Judges' Guide](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/JUDGES_GUIDE.md)**.*
 
-1. **Check the Dashboard**: Notice the flat monochrome side-by-side bar chart showing **Allocated Budget** vs **Actual Spent** across 5 projects, including the newly added *Project Athena (AI Platform)*.
-2. **Review the Calendar Schedule**: At the center, look at the **Calendar Audit Schedule** showing all meetings color-coded by their state.
-3. **Simulate Calendar Sync**: Click the **"Simulate Calendar Sync"** button in the header:
-    - **Click 1**: Syncs standard meetings; they are automatically attributed by AI.
-    - **Click 2**: Syncs a critical database breach audit. Because of its high cost ($4,275), the Z-score engine immediately flags it as a red **`SPIKE`** on the calendar and pushes it to the **Cost Anomalies** feed on the right.
-    - **Click 3**: Syncs an ambiguous meeting (*"Touch base about resources"*). Since AI confidence is low, it is flagged as a yellow **`AUDIT`** and routed into the **Human-in-the-Loop Review Queue**.
-4. **Confirm / Reassign**: Go to the **Review Queue**, select a project from the dropdown, and click **"Reassign"**. The meeting immediately moves to the **Resolution History** log, turns green (**`OK`**) on the calendar, and the project charts update dynamically.
-5. **Re-allot / Return**: In the **Resolution History** log at the bottom, select a card, click **"Re-allot Project"**, and click **"Unsure? Send to Review Queue"**. The meeting moves back to the pending queue and the calendar updates instantly.
-6. **Payroll Configuration**: Click the **"Payroll Config"** button in the top right to open the drawer. Change employee hourly rates and witness the entire database's unreviewed meeting costs and anomaly Z-scores recalculate dynamically.
+1. **Check the Dashboard**: Notice the **Attendee Heavy Hitters Table**, **Efficiency Scorecard**, and flat monochrome **Allocated Budget vs Actual Spent** chart.
+2. **Review the Calendar Schedule**: At the center, look at the daily schedule showing meetings color-coded by state. Click any card to slide out the **Details Inspector Drawer** showing precise attendee cost formulas.
+3. **Simulate Calendar Sync**: Click **"Simulate Calendar Sync"** and monitor live logs feeding into the **System Transaction Terminal** at the bottom:
+    - **Click 1**: Syncs standard meetings, mapped by AI.
+    - **Click 2**: Syncs a critical breach audit. Outlier detection triggers a red `[SYS_ALERTS]` log and flags it as a red **`SPIKE`** on the calendar.
+    - **Click 3**: Syncs an ambiguous meeting. Low confidence routes it to the review queue and prints a yellow `[SYS_VERIFICATION]` log.
+4. **Confirm / Reassign**: Go to the **Review Queue**, select a project, and click **"Reassign"**. The meeting turns green (**`OK`**) on the calendar, charts update, and an emerald `[SYS_AUDIT]` log is printed.
+5. **Re-allot / Return**: In the Audit Log, click **"Re-allot Project"** and select **"Unsure? Send to Review Queue"** to send the meeting back to the queue, recalculating all metrics.
+6. **Payroll Configuration**: Toggle **"Payroll Config"** in the top right. Adjust Aarav Sharma's hourly rate and watch the **Attendee Heavy Hitters Leaderboard** recalculate his total cost footprint instantly, logged in blue.
