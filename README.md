@@ -21,6 +21,7 @@ Meetings are one of the largest hidden expenditures in modern organizations. The
 7. **Calendar Audit Schedule Grid**: A visual, daily calendar timeline categorizing all meetings by state (`OK`, `AI`, `AUDIT`, `SPIKE`).
 8. **HR Re-allotment Controls**: HR managers can reassign mappings or return meetings back to the review queue.
 9. **Google Calendar Sync Simulator**: Incremental sync simulator feeding events in real-time.
+10. **Clean Light / Dark Mode Toggle**: Features a zero-delay, FOUC-free theme switcher with full visual style overrides, adapting the layout and interactive Recharts charts dynamically while preserving the premium monochrome brutalist design.
 
 ---
 
@@ -120,7 +121,7 @@ npm run dev
 
 *For a detailed walkthrough, please see the **[Judges' Guide](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/JUDGES_GUIDE.md)**.*
 
-1. **Check the Dashboard**: Notice the **Attendee Heavy Hitters Table**, **Efficiency Scorecard**, and flat monochrome **Allocated Budget vs Actual Spent** chart.
+1. **Check the Dashboard & Toggle Theme**: Click the **Sun/Moon icon** in the header to instantly toggle between Dark and Light mode. Notice the zero render flicker, clean monochrome aesthetics, and how the Recharts spent-vs-budget chart dynamically adapts its colors.
 2. **Review the Calendar Schedule**: At the center, look at the daily schedule showing meetings color-coded by state. Click any card to slide out the **Details Inspector Drawer** showing precise attendee cost formulas.
 3. **Simulate Calendar Sync**: Click **"Simulate Calendar Sync"** and monitor live logs feeding into the **System Transaction Terminal** at the bottom:
     - **Click 1**: Syncs standard meetings, mapped by AI.

@@ -2,18 +2,63 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
+:root {
+  --bg-color: #000000;
+  --text-color: #f4f4f5; /* zinc-100 */
+  --card-bg: #09090b; /* zinc-950 */
+  --card-bg-hover: rgba(24, 24, 27, 0.4); /* zinc-900/40 */
+  --card-border: #18181b; /* zinc-900 */
+  --card-hover-border: #27272a; /* zinc-800 */
+  --title-color: #ffffff;
+  --desc-color: #a1a1aa; /* zinc-400 */
+  --zinc-500-color: #71717a; /* zinc-500 */
+  --dot-color: rgba(255, 255, 255, 0.04);
+  --header-bg: rgba(0, 0, 0, 0.6);
+  --input-bg: #000000;
+  --input-border: #27272a;
+}
+
+.light {
+  --bg-color: #fafafa;
+  --text-color: #18181b; /* zinc-900 */
+  --card-bg: #ffffff;
+  --card-bg-hover: rgba(244, 244, 245, 0.6); /* zinc-100/60 */
+  --card-border: #e4e4e7; /* zinc-200 */
+  --card-hover-border: #d4d4d8; /* zinc-300 */
+  --title-color: #09090b;
+  --desc-color: #71717a; /* zinc-500 */
+  --zinc-500-color: #52525b; /* zinc-600 */
+  --dot-color: rgba(9, 9, 11, 0.04);
+  --header-bg: rgba(250, 250, 250, 0.8);
+  --input-bg: #ffffff;
+  --input-border: #d4d4d8;
+}
+
 @theme {
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-theme-bg: var(--bg-color);
+  --color-theme-text: var(--text-color);
+  --color-theme-card: var(--card-bg);
+  --color-theme-card-hover: var(--card-bg-hover);
+  --color-theme-border: var(--card-border);
+  --color-theme-border-hover: var(--card-hover-border);
+  --color-theme-title: var(--title-color);
+  --color-theme-desc: var(--desc-color);
+  --color-theme-zinc500: var(--zinc-500-color);
+  --color-theme-header: var(--header-bg);
+  --color-theme-input: var(--input-bg);
+  --color-theme-input-border: var(--input-border);
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #000000; /* Pure black */
-  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-color: var(--bg-color);
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
   background-size: 24px 24px;
-  color: #ffffff; /* Pure white */
+  color: var(--text-color);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom scrollbars for a premium brutalist feel */
@@ -74,4 +119,208 @@ body {
 .active-pulse-glowing {
   animation: pulse-glow 2s infinite ease-in-out;
 }
+
+/* Light mode utility overrides (prevents delay and ensures native Tailwind compatibility) */
+.light body {
+  background-color: var(--bg-color);
+}
+.light .bg-black {
+  background-color: var(--bg-color) !important;
+}
+.light .bg-white {
+  background-color: var(--title-color) !important;
+}
+.light .bg-black\/60 {
+  background-color: var(--header-bg) !important;
+}
+.light .bg-zinc-950 {
+  background-color: var(--card-bg) !important;
+}
+.light .bg-zinc-955 {
+  background-color: var(--card-bg) !important;
+}
+.light .bg-zinc-900\/40 {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .bg-zinc-955\/10 {
+  background-color: rgba(228, 228, 231, 0.1) !important;
+}
+.light .bg-zinc-905 {
+  background-color: var(--card-border) !important;
+}
+.light .bg-zinc-950\/40 {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+}
+.light .bg-zinc-950\/65 {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+}
+.light .bg-zinc-950\/70 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+.light .bg-zinc-950\/75 {
+  background-color: rgba(255, 255, 255, 0.75) !important;
+}
+.light .bg-zinc-950\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+.light .border-zinc-900 {
+  border-color: var(--card-border) !important;
+}
+.light .border-zinc-800 {
+  border-color: var(--card-hover-border) !important;
+}
+.light .border-zinc-850 {
+  border-color: var(--card-hover-border) !important;
+}
+.light .border-zinc-855 {
+  border-color: var(--card-hover-border) !important;
+}
+.light .text-zinc-100 {
+  color: var(--text-color) !important;
+}
+.light .text-white {
+  color: var(--title-color) !important;
+}
+.light .text-zinc-400 {
+  color: var(--desc-color) !important;
+}
+.light .text-zinc-455 {
+  color: var(--desc-color) !important;
+}
+.light .text-zinc-450 {
+  color: var(--desc-color) !important;
+}
+.light .text-zinc-500 {
+  color: var(--zinc-500-color) !important;
+}
+.light .text-zinc-300 {
+  color: var(--text-color) !important;
+}
+.light .text-zinc-200 {
+  color: var(--text-color) !important;
+}
+.light .text-zinc-650 {
+  color: var(--zinc-500-color) !important;
+}
+.light .text-zinc-655 {
+  color: var(--zinc-500-color) !important;
+}
+.light .text-zinc-355 {
+  color: var(--text-color) !important;
+}
+.light .text-zinc-350 {
+  color: var(--text-color) !important;
+}
+.light .text-zinc-305 {
+  color: var(--text-color) !important;
+}
+.light .bg-zinc-900 {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .hover\:bg-zinc-900:hover {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .hover\:bg-zinc-850:hover {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .hover\:bg-zinc-800:hover {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .hover\:border-zinc-750:hover {
+  border-color: var(--card-hover-border) !important;
+}
+.light .hover\:border-zinc-700:hover {
+  border-color: var(--card-hover-border) !important;
+}
+.light .hover\:border-zinc-800:hover {
+  border-color: var(--card-hover-border) !important;
+}
+.light .hover\:border-zinc-805:hover {
+  border-color: var(--card-hover-border) !important;
+}
+.light .hover\:bg-zinc-900\/20:hover {
+  background-color: rgba(9, 9, 11, 0.05) !important;
+}
+.light .hover\:bg-zinc-900\/40:hover {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .hover\:bg-zinc-900\/70:hover {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .bg-zinc-900\/30 {
+  background-color: rgba(244, 244, 245, 0.5) !important; /* zinc-100/50 */
+}
+.light .bg-zinc-900\/35 {
+  background-color: rgba(244, 244, 245, 0.55) !important; /* zinc-100/55 */
+}
+.light .bg-zinc-800 {
+  background-color: var(--card-bg-hover) !important;
+}
+.light .border-zinc-900\/40 {
+  border-color: rgba(228, 228, 231, 0.4) !important; /* zinc-200/40 */
+}
+.light .border-zinc-700\/50 {
+  border-color: rgba(228, 228, 231, 0.5) !important; /* zinc-200/50 */
+}
+.light .text-zinc-550 {
+  color: var(--zinc-500-color) !important;
+}
+.light .text-zinc-505 {
+  color: var(--zinc-500-color) !important;
+}
+.light .bg-red-955\/10 {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+.light .bg-emerald-955\/5 {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: #d4d4d8; /* zinc-300 */
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa; /* zinc-400 */
+}
+.light ::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(228, 228, 231, 0.8);
+}
+.light .hover-card:hover {
+  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.1);
+}
+
+/* Enforce dark terminal styles in both themes */
+.terminal-window-theme {
+  background-color: #050505 !important;
+  border-color: #1a1a1a !important;
+}
+.terminal-window-theme .text-zinc-400 {
+  color: #a1a1aa !important;
+}
+.terminal-window-theme .text-zinc-500 {
+  color: #71717a !important;
+}
+.terminal-window-theme .text-zinc-300 {
+  color: #d4d4d8 !important;
+}
+.terminal-window-theme .text-red-450 {
+  color: #f87171 !important;
+}
+.terminal-window-theme .text-yellow-455 {
+  color: #fbbf24 !important;
+}
+.terminal-window-theme .text-emerald-400 {
+  color: #34d399 !important;
+}
+.terminal-window-theme .text-blue-400 {
+  color: #60a5fa !important;
+}
+.terminal-window-theme .text-zinc-655 {
+  color: #52525b !important;
+}
+
+
 

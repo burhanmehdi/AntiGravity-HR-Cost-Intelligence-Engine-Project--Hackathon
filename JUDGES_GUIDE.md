@@ -54,6 +54,11 @@ The top 5 are displayed in the **Attendee Heavy Hitters Leaderboard**.
 ### 6. Real-Time Transaction Logger
 A client-side audit logger records API queries, Google Calendar syncs, manager resolutions, and rate configurations, piping them into a CLI-style scrollable console box.
 
+### 7. Clean Light / Dark Mode Toggle
+*   **Flicker-Free Theme Loading**: Injected an inline, synchronous JavaScript IIFE inside the `<head>` of `index.html` that reads the theme preference (`localStorage`) and applies it to the `document.documentElement` class list before the body renders. This avoids Flash of Unstyled Content (FOUC).
+*   **Monochrome Aesthetic Integrity**: In light mode, the dashboard transitions from black/dark graphite to clean white/light gray while keeping the same stark, brutalist monochrome vibe. It automatically maps Tailwind classes via CSS variables under the `.light` theme selector.
+*   **Dynamic Recharts Styling**: The project cost chart instantly switches its grid lines, labels, tooltip backgrounds, and bar colors when the theme is toggled.
+
 ---
 
 ## 🗺️ System Flow (How Data Moves)
@@ -92,10 +97,11 @@ graph TD
 
 Follow this 5-step walkthrough to experience the entire system in action:
 
-### Step 1: Examine the Base Dashboard
-Open [http://localhost:5173](http://localhost:5173). Notice:
+### Step 1: Examine the Base Dashboard & Toggle Theme
+Open [http://localhost:5173](http://localhost:5173).
+*   **Toggle Theme**: Click the **Sun/Moon icon** in the header. Observe that the layout instantly transitions between dark and light mode with zero lag or screen flash, and the spent-vs-budget Recharts visualization redraws dynamically.
 *   **Attendee Heavy Hitters**: Details the top 5 employees by total meeting cost footprint.
-*   **Efficiency Scorecard**: Displays Average Cost per Meeting, Largest Cost Spike, and Vague Agenda Ratio.
+*   **Efficiency Scorecard**: Displays Average Cost per Meeting, Largest Cost Spike, and Vague Meetings Ratio.
 *   **Project Expenditure Chart**: A flat side-by-side vertical bar chart comparing the **Allocated Budget** vs **Actual Spent** for 5 projects.
 *   **Calendar Audit Schedule**: A daily view showing meetings categorized by color-coded status badges.
 *   **System Transaction Terminal**: A monospace log terminal at the very bottom tracking engine actions in real-time.
@@ -131,6 +137,7 @@ In the **Resolution History / Audit Log** at the bottom:
 *   [backend/app/anomaly.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/anomaly.py): Houses the mathematical helper functions. Calculates basic meeting costs and computes standard deviation to find Z-score outliers.
 *   [backend/app/ai_service.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/ai_service.py): Manages LLM connections. Queries OpenAI Structured Outputs to map meetings to project metadata. Automatically switches to a local keyword-matching algorithm if the API key is missing.
 *   [backend/app/seed.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/seed.py): Populates the SQLite database with 5 distinct projects (Apollo, Zeus, Marketing, Operations, Athena), 7 employees with realistic hourly rates, and 21 historical meetings.
-*   [backend/app/models.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/backend/app/models.py): Defines SQLite database tables (Projects, Employees, Meetings, Attributions) using SQLAlchemy.
-*   [frontend/src/App.jsx](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/frontend/src/App.jsx): The single-page dashboard. Houses KPI metrics, Heavy Hitters leaderboards, Recharts project spent bars, daily calendar schedule, anomalies alerts feed, human-in-the-loop review queue, audit logs, real-time logging terminal, and the slide-out inspector drawer.
-*   [frontend/src/index.css](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/frontend/src/index.css): Sets up styling rules, including glassmorphism cards, interactive hover elevations, drawer slide transitions, pulse animations, custom scrollbars, and the dot-matrix grid layout background.
+*   [backend/app/models.py](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%2520Cost%2520Intelligence%2520Project/backend/app/models.py): Defines SQLite database tables (Projects, Employees, Meetings, Attributions) using SQLAlchemy.
+*   [frontend/index.html](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%20Intelligence%20Project/frontend/index.html): Custom entrypoint HTML. Injects an inline, synchronous theme loader inside `<head>` to prevent Flash of Unstyled Content (FOUC).
+*   [frontend/src/App.jsx](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%2520Cost%2520Intelligence%2520Project/frontend/src/App.jsx): The single-page dashboard. Houses theme toggle button state and action handler, and adaptively updates Recharts bar colors and layouts on theme swap.
+*   [frontend/src/index.css](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%2520Cost%2520Intelligence%2520Project/frontend/src/index.css): Sets up the CSS theme variables and contains the custom light mode color override classes.

@@ -30,7 +30,9 @@ import {
   Terminal,
   X,
   Info,
-  Maximize2
+  Maximize2,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -57,6 +59,22 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [reallotActiveId, setReallotActiveId] = useState(null);
   const [reallotForm, setReallotForm] = useState({});
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('theme', nextTheme);
+    if (nextTheme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      addLog('SYS_UI', 'Switched UI theme to Light Mode.');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      addLog('SYS_UI', 'Switched UI theme to Dark Mode.');
+    }
+  };
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [terminalLogs, setTerminalLogs] = useState([
     `[${new Date().toLocaleTimeString()}] [SYS_BOOT] HR Cost Intelligence Engine v1.0.0 initializing...`,
@@ -263,6 +281,15 @@ export default function App() {
   };
 
   useEffect(() => {
+    const activeTheme = localStorage.getItem('theme') || 'dark';
+    if (activeTheme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+
     fetchDashboardData();
     fetchProjects();
     fetchEmployees();
@@ -380,6 +407,18 @@ export default function App() {
           )}
           
           <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center p-2.5 bg-transparent hover:bg-zinc-900 border border-zinc-800 text-white rounded-xl transition-all duration-205 active:scale-95 cursor-pointer"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-3.5 w-3.5 text-zinc-400" />
+            ) : (
+              <Moon className="h-3.5 w-3.5 text-zinc-500" />
+            )}
+          </button>
+          
+          <button
             onClick={() => setAdminOpen(!adminOpen)}
             className="flex items-center gap-2 bg-transparent hover:bg-zinc-900 text-white text-xs font-semibold px-4 py-2 rounded-xl border border-zinc-800 transition-all duration-205 active:scale-95"
           >
@@ -390,7 +429,7 @@ export default function App() {
           <button
             onClick={handleSync}
             disabled={syncLoading}
-            className="flex items-center gap-2 bg-white hover:bg-zinc-200 text-black text-xs font-semibold px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 disabled:bg-zinc-900 disabled:text-zinc-600 disabled:cursor-not-allowed border border-white"
+            className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 text-xs font-semibold px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 disabled:bg-zinc-955 disabled:text-zinc-600 disabled:cursor-not-allowed border border-zinc-800 cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${syncLoading ? 'animate-spin' : ''}`} />
             {syncLoading ? 'Syncing...' : 'Simulate Calendar Sync'}
@@ -496,7 +535,7 @@ export default function App() {
                 )}
               </p>
             </div>
-            <div className={`p-3 border rounded-xl transition-all duration-300 ${stats.pending_reviews > 0 ? 'bg-zinc-100 text-black border-zinc-100' : 'bg-zinc-900 text-zinc-400 border-zinc-855'}`}>
+            <div className={`p-3 border rounded-xl transition-all duration-300 ${stats.pending_reviews > 0 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-zinc-900 text-zinc-400 border-zinc-855'}`}>
               <CheckCircle2 className="h-5 w-5" />
             </div>
           </div>
@@ -516,7 +555,7 @@ export default function App() {
                 )}
               </p>
             </div>
-            <div className={`p-3 border rounded-xl transition-all duration-300 ${stats.active_anomalies > 0 ? 'bg-zinc-100 text-black border-zinc-100' : 'bg-zinc-900 text-zinc-400 border-zinc-855'}`}>
+            <div className={`p-3 border rounded-xl transition-all duration-300 ${stats.active_anomalies > 0 ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-zinc-900 text-zinc-400 border-zinc-855'}`}>
               <AlertTriangle className="h-5 w-5" />
             </div>
           </div>
@@ -659,38 +698,44 @@ export default function App() {
                   barGap={6}
                   margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#18181b' : '#e4e4e7'} vertical={false} />
                   <XAxis 
                     dataKey="name" 
-                    stroke="#a1a1aa" 
+                    stroke={theme === 'dark' ? '#a1a1aa' : '#71717a'} 
                     fontSize={10} 
                     tickLine={false} 
                     axisLine={false}
                     tickFormatter={(name) => name.split(' (')[0]}
                   />
                   <YAxis 
-                    stroke="#a1a1aa" 
+                    stroke={theme === 'dark' ? '#a1a1aa' : '#71717a'} 
                     fontSize={10} 
                     tickLine={false} 
                     axisLine={false}
                     tickFormatter={(val) => `$${val}`}
                   />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '12px', backdropFilter: 'blur(12px)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                    labelStyle={{ fontWeight: 'bold', color: '#ffffff', fontSize: '11px' }}
-                    itemStyle={{ color: '#e2e8f0', fontSize: '11px' }}
+                    contentStyle={{ 
+                      backgroundColor: theme === 'dark' ? '#09090b' : '#ffffff', 
+                      borderColor: theme === 'dark' ? '#27272a' : '#e4e4e7', 
+                      borderRadius: '12px', 
+                      backdropFilter: 'blur(12px)', 
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' 
+                    }}
+                    labelStyle={{ fontWeight: 'bold', color: theme === 'dark' ? '#ffffff' : '#09090b', fontSize: '11px' }}
+                    itemStyle={{ color: theme === 'dark' ? '#e2e8f0' : '#18181b', fontSize: '11px' }}
                     formatter={(value, name) => [formatUSD(value), name === 'cost' ? 'Spent' : 'Budget']}
                   />
                   <Legend 
                     verticalAlign="bottom" 
                     height={36} 
                     iconType="circle"
-                    formatter={(value) => <span style={{ color: '#a1a1aa', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{value === 'cost' ? 'Actual Spent' : 'Allocated Budget'}</span>}
+                    formatter={(value) => <span style={{ color: theme === 'dark' ? '#a1a1aa' : '#52525b', fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{value === 'cost' ? 'Actual Spent' : 'Allocated Budget'}</span>}
                   />
-                  {/* Budget Reference Bar (Sleek Flat Zinc Grey) */}
-                  <Bar dataKey="budget" fill="#27272a" radius={[4, 4, 0, 0]} maxBarSize={18} />
-                  {/* Actual Spent Bar (Sleek Flat White) */}
-                  <Bar dataKey="cost" fill="#ffffff" radius={[4, 4, 0, 0]} maxBarSize={18} />
+                  {/* Budget Reference Bar (Sleek Flat Zinc Grey in dark, light grey in light) */}
+                  <Bar dataKey="budget" fill={theme === 'dark' ? '#27272a' : '#e4e4e7'} radius={[4, 4, 0, 0]} maxBarSize={18} />
+                  {/* Actual Spent Bar (Sleek Flat White in dark, flat black/dark-zinc in light) */}
+                  <Bar dataKey="cost" fill={theme === 'dark' ? '#ffffff' : '#18181b'} radius={[4, 4, 0, 0]} maxBarSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -863,7 +908,7 @@ export default function App() {
                 Human-in-the-Loop Review Queue
                 <span className="text-[9px] font-mono text-zinc-600 tracking-wider bg-zinc-950 border border-zinc-900 px-2 py-0.5 rounded font-normal select-none">[SYS_VERIFICATION]</span>
                 {reviewQueue.length > 0 && (
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-white text-black font-extrabold tracking-wider animate-pulse">
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 font-extrabold tracking-wider animate-pulse">
                     {reviewQueue.length} Pending
                   </span>
                 )}
@@ -973,7 +1018,7 @@ export default function App() {
                       <button
                         onClick={() => handleResolveAttribution(item.id, reviewForm[item.id], true)}
                         disabled={actionLoading[item.id] || !reviewForm[item.id] || reviewForm[item.id] === ''}
-                        className="flex-1 bg-white hover:bg-zinc-200 text-black text-xs font-bold py-2 rounded-xl transition-all duration-200 disabled:bg-zinc-900 disabled:text-zinc-600 disabled:pointer-events-none active:scale-95 border border-white"
+                        className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 text-xs font-semibold py-2 rounded-xl transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none active:scale-95 border border-zinc-800 cursor-pointer"
                       >
                         Reassign
                       </button>
@@ -1074,7 +1119,7 @@ export default function App() {
                               handleResolveAttribution(item.id, target, true);
                             }}
                             disabled={actionLoading[item.id] || !reallotForm[item.id]}
-                            className="flex-1 bg-white hover:bg-zinc-200 text-black text-xs font-bold py-1.5 rounded-xl transition-all duration-205 disabled:bg-zinc-900 disabled:text-zinc-600 disabled:pointer-events-none active:scale-95 border border-white cursor-pointer"
+                            className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 text-xs font-bold py-1.5 rounded-xl transition-all duration-205 disabled:opacity-40 disabled:pointer-events-none active:scale-95 border border-zinc-800 cursor-pointer"
                           >
                             Save
                           </button>
@@ -1126,7 +1171,7 @@ export default function App() {
                     <span className="text-xs font-bold text-white block font-mono">{formatUSD(item.cost)}</span>
                     <span className="text-[9px] text-zinc-500 block mt-1.5 tracking-widest font-black uppercase">
                       {item.attribution.attributed_by === 'human' ? (
-                        <span className="bg-white text-black px-1.5 py-0.5 font-black text-[8px] border border-white">
+                        <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 text-[8px] font-black">
                           AUDITED BY HUMAN
                         </span>
                       ) : (
@@ -1161,7 +1206,7 @@ export default function App() {
             </button>
           </div>
           
-          <div className="bg-black border border-zinc-900 rounded-xl p-4 h-48 overflow-y-auto font-mono text-[11px] text-zinc-400 space-y-1.5 scrollbar-thin select-text">
+          <div className="terminal-window-theme border rounded-xl p-4 h-48 overflow-y-auto font-mono text-[11px] text-zinc-400 space-y-1.5 scrollbar-thin select-text">
             {terminalLogs.length === 0 ? (
               <div className="text-zinc-655 italic text-center py-12">Console cleared. Awaiting system events...</div>
             ) : (
@@ -1294,7 +1339,7 @@ export default function App() {
                         setSelectedMeeting(null);
                       }}
                       disabled={!selectedMeeting.project_id}
-                      className="flex-1 bg-white hover:bg-zinc-200 text-black text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer border border-white active:scale-95"
+                      className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer border border-zinc-800 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
                     >
                       Confirm AI suggestion
                     </button>
