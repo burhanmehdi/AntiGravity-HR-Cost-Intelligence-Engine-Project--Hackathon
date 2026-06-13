@@ -7,6 +7,10 @@
 <img width="1918" height="1062" alt="Screenshot 2026-06-13 143810" src="https://github.com/user-attachments/assets/249b20cf-90e2-4d17-a5a1-bf07d024f57d" />
 </p>
 </b>
+<p align="center">
+<img width="1913" height="1078" alt="image" src="https://github.com/user-attachments/assets/e1a205d5-628f-4b19-8403-6f950c2e5151" />
+</p>
+</b>
 ## 👨‍⚖️ Important Note for Hackathon Judges
 
 For the best evaluation experience, please review the dedicated Judges' Guide:
