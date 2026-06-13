@@ -16,7 +16,7 @@
 </p>
 </b>
 
-## ** Important Note for Hackathon Judges**
+## Important Note for Hackathon Judges
 
 For the best evaluation experience, please review the dedicated Judges' Guide:
 
