@@ -1,6 +1,12 @@
 # 📊 HR Cost Intelligence Engine
 ### AI-Powered Calendar Resource & Meeting Cost Analytics (Hackathon Submission)
 
+## Project preview
+
+<p align="center">
+<img width="1918" height="1062" alt="Screenshot 2026-06-13 143810" src="https://github.com/user-attachments/assets/249b20cf-90e2-4d17-a5a1-bf07d024f57d" />
+</p>
+</b>
 > [!IMPORTANT]
 > **Dear Hackathon Judges:**
 > I have prepared a dedicated, high-fidelity **[Judges' Guide (JUDGES_GUIDE.md)](file:///c:/Users/Burhan%20Mehdi/OneDrive/Desktop/HR%20Cost%2520Intelligence%2520Project/JUDGES_GUIDE.md)** which explains the core calculations, Z-Score math, and system flows in simple terms, alongside a step-by-step demonstration walkthrough. Please refer to it for the best evaluation experience!
